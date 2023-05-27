@@ -1,0 +1,24 @@
+<html>
+	<head>
+		<meta charset='utf-8'>
+		<title>Patches</title>
+		<style>
+			* {
+				font-family: Courier;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Linux Kernel patch ideas, collected by Coccinelle</h1>
+		<div>
+			Kernel version: {{kver}}<br>
+			Last update: {{last_update}}<br>
+			Total files: {{count}}<br>
+		</div>
+		<h3>Choose the file</h3>
+		{% for issue in issues %}
+			<a href="/view?id={{issue[0]}}">{{issue[0]}} - {{issue[1]}}</a><br>
+		{% endfor %}
+		{% include 'footer.html' %}
+	</body>
+</html>

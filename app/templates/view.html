@@ -1,0 +1,26 @@
+<html>
+	<head>
+		<meta charset='utf-8'>
+		<title>Issue - {{iid}}</title>
+		<style>
+			* {
+				font-family: Courier;
+			}
+		</style>
+	</head>
+	<body>
+		<a href="/">&lt;&lt;&lt; BACK</a>
+		<h1>{{fname}}</h1>
+		<h2>Messages</h2>
+		<p>
+			{% for msg in messages %}
+				{{msg}}<br>
+			{% endfor %}
+		</p>
+		<h2>Diff</h2>
+		<div>{% autoescape false %}{{diff}}{% endautoescape %}<br>
+		</div>
+
+		{% include 'footer.html' %}
+	</body>
+</html>
