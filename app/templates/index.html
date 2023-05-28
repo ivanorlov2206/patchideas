@@ -15,6 +15,9 @@
 			Last update: {{last_update}}<br>
 			Total files: {{count}}<br>
 		</div>
+		<p>
+			Despite the use of high-confidence coccinelle scripts, some of the issues are false-positives. Please, look carefully before sending any patches based on this data!
+		</p>
 		<h3>Choose the file</h3>
 		{% for issue in issues %}
 			<a href="/view?id={{issue[0]}}">{{issue[0]}} - {{issue[1]}}</a><br>
