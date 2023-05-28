@@ -1,3 +1,4 @@
+import sys
 import os
 import time
 import hashlib
@@ -6,7 +7,6 @@ import re
 import subprocess
 from pathlib import Path
 
-NUM_CORES = 12
 linux_path = os.getenv("LINUX_SRC")
 scripts_dirs = ["{}/scripts/coccinelle/".format(linux_path), "./local_cocci/"]
 
@@ -64,35 +64,18 @@ def parse_cocci_res(data):
 		res.append(d)
 	return res
 
-def find_all_issues():
-	scripts = find_cocci()
-	res = []
-	for script in scripts:
-		print("Script:", script)
-		try:
-			data = exec_cocci(script)
-			tres = parse_cocci_res(data)
-			print("Found", len(tres), "files")
-			res.extend(tres)
-		except Exception as e:
-			print(e)
-			print("Error")
-	return res
+def get_issues_colnums(cur):
+	cur.execute("SELECT * FROM issues LIMIT 1")
+	colnames = [desc[0] for desc in cur.description]
+	return {colnames[i]: i for i in range(len(colnames))}
 
-
-def update_issues():
-	issues = find_all_issues()
+def update_is_actual(cur, new_issues):
 	hashes = set()
-	for issue in issues:
+	for issue in new_issues:
 		hashes.add(hashlib.sha256(issue.diff.encode('utf-8')).hexdigest())
-	conn = sqlite3.connect('db.db')
-	cur =  conn.cursor()
 	cur.execute("SELECT * FROM issues")
 	rows = cur.fetchall()
-	colnames = [desc[0] for desc in cur.description]
-	print(colnames)
-	colnums = {colnames[i]: i for i in range(len(colnames))}
-	print(colnums)
+	colnums = get_issues_colnums(cur)
 	try:
 		cur.execute("begin")
 		for row in rows:
@@ -100,10 +83,12 @@ def update_issues():
 				cur.execute("UPDATE issues SET is_actual = 0 WHERE id = ?", (row[colnums['id']],))
 		cur.execute("commit")
 	except Exception as e:
-		print(str(e))
-		print("Error during set is_actual")
+		print("Error during set is_actual", e)
 		cur.execute("rollback")
 
+
+def load_issues(cur, issues):
+	colnums = get_issues_colnums(cur)
 	try:
 		cur.execute("begin")
 		for issue in issues:
@@ -113,11 +98,33 @@ def update_issues():
 			if r is None:
 				cur.execute("INSERT INTO issues (id, fname, messages, diff, hash, is_actual, timest) VALUES(NULL, ?, ?, ?, ?, ?, ?)", \
 					    (issue.fname, "\n".join(issue.messages), issue.diff, curhash, 1, int(time.time())))
+			elif r[colnums['is_actual']] == 0:
+				cur.execute("UPDATE issues SET is_actual = 1 WHERE id = ?", (r[0],))
 		cur.execute("commit")
 	except Exception as e:
-		print("Error", e);
+		print("Error during inserting", e);
 		cur.execute("rollback")
-	conn.commit()
+
+
+def update_issues():
+	conn = sqlite3.connect('db.db')
+	cur = conn.cursor()
+	scripts = find_cocci()
+	res = []
+	for script in scripts:
+		print("Script:", script)
+		try:
+			data = exec_cocci(script)
+			tres = parse_cocci_res(data)
+			print("Found", len(tres), "files")
+			load_issues(cur, tres)
+			conn.commit()
+			res.extend(tres)
+		except Exception as e:
+			ex_type, ex_obj, ex_tb = sys.exc_info()
+			print(ex_type, ex_tb.tb_lineno)
+			print("Error")
+	update_is_actual(cur, res)
 	conn.close()
 
 def fetch_kernel_ver():

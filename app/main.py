@@ -16,7 +16,7 @@ def index():
 	cur.execute("SELECT * FROM info LIMIT 1")
 	info = cur.fetchone()
 
-	cur.execute("SELECT * FROM issues WHERE is_actual = 1 ORDER BY timest DESC")
+	cur.execute("SELECT * FROM issues WHERE is_actual = 1 ORDER BY id")
 	issues = cur.fetchall()
 	columns = [desc[0] for desc in cur.description]
 	col_nm = {columns[i]: i for i in range(len(columns))}
