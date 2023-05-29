@@ -20,7 +20,7 @@ def index():
 	issues = cur.fetchall()
 	columns = [desc[0] for desc in cur.description]
 	col_nm = {columns[i]: i for i in range(len(columns))}
-	date = datetime.fromtimestamp(issues[0][col_nm['timest']])
+	date = datetime.fromtimestamp(info[-1])
 	conn.close()
 	return render_template('index.html', kver=info[0], issues=issues, last_update=str(date), count=len(issues))
 

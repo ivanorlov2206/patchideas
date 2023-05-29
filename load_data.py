@@ -140,7 +140,7 @@ def fetch_kernel_ver():
 def update_info():
 	conn = sqlite3.connect('db.db')
 	cur = conn.cursor()
-	cur.execute("UPDATE info SET kernel_ver = ?", (fetch_kernel_ver(),))
+	cur.execute("UPDATE info SET kernel_ver = ?, last_update = ?", (fetch_kernel_ver(),int(time.time())))
 	conn.commit()
 	conn.close()
 
