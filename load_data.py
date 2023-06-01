@@ -8,7 +8,7 @@ import subprocess
 from pathlib import Path
 
 linux_path = os.getenv("LINUX_SRC")
-scripts_dirs = ["{}/scripts/coccinelle/".format(linux_path), "./local_cocci/"]
+scripts_dirs = ["{}/scripts/coccinelle/".format(linux_path), "{}/local_cocci/".format(os.getcwd())]
 
 class Issue():
 	fname = ""

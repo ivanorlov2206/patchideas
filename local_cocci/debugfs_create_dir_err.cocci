@@ -11,7 +11,8 @@ E1 = \(debugfs_create_dir\|debugfs_create_file\|debugfs_rename\|debugfs_create_s
 (
 !E1 || IS_ERR(E1)
 |
-* !E1@p1
+- !E1@p1
++ ISERR(E1)
 )
 
 @script:python depends on report@
