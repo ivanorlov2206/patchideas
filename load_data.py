@@ -8,7 +8,7 @@ import subprocess
 from pathlib import Path
 
 linux_path = os.getenv("LINUX_SRC")
-scripts_dirs = ["{}/scripts/coccinelle/".format(linux_path), "{}/local_cocci/".format(os.getcwd())]
+scripts_dirs = ["{}/local_cocci/".format(os.getcwd()), "{}/scripts/coccinelle/".format(linux_path)]
 
 class Issue():
 	fname = ""
@@ -98,7 +98,7 @@ def load_issues(cur, issues):
 			if r is None:
 				cur.execute("INSERT INTO issues (id, fname, messages, diff, hash, is_actual, timest) VALUES(NULL, ?, ?, ?, ?, ?, ?)", \
 					    (issue.fname, "\n".join(issue.messages), issue.diff, curhash, 1, int(time.time())))
-			elif r[colnums['is_actual']] == 0:
+			else:
 				cur.execute("UPDATE issues SET is_actual = 1 WHERE id = ?", (r[0],))
 		cur.execute("commit")
 	except Exception as e:
