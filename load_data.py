@@ -64,6 +64,25 @@ def parse_cocci_res(data):
 		res.append(d)
 	return res
 
+def get_docs_warns():
+	subprocess.run(['make', 'cleandocs'], cwd=linux_path, stdout=subprocess.PIPE)
+	exec_result = subprocess.run(['make', 'htmldocs'], cwd=linux_path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	data = exec_result.stdout.decode('utf-8')
+	lines = data.split('\n')
+	result = {}
+	info_pattern = re.compile("^.+:[0-9]+:.+$")
+	for line in lines:
+		print(line)
+		if info_pattern.match(line):
+			parts = line.split(":")
+			if not parts[0] in result:
+				result[parts[0]] = Issue()
+			d = result[parts[0]]
+			d.fname = parts[0]
+			d.messages = ["Documentation warnings"]
+			d.diff += line + "\n"
+	return [result[k] for k in result.keys()]
+
 def get_issues_colnums(cur):
 	cur.execute("SELECT * FROM issues LIMIT 1")
 	colnames = [desc[0] for desc in cur.description]
@@ -111,6 +130,10 @@ def update_issues():
 	cur = conn.cursor()
 	scripts = find_cocci()
 	res = []
+	tres = get_docs_warns()
+	load_issues(cur, tres)
+	conn.commit()
+	res.extend(tres)
 	for script in scripts:
 		print("Script:", script)
 		try:
